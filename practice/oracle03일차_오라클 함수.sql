@@ -55,19 +55,3 @@ SELECT * FROM EMPLOYEE WHERE NOT SUBSTR(PHONE,1,3) = 010;
 SELECT EMP_NAME "직원명", EXTRACT(YEAR FROM HIRE_DATE)||'년 '||EXTRACT(MONTH FROM HIRE_DATE)||'월' "입사년월" FROM EMPLOYEE;
 --6. 직원명과 주민번호를 조회하시오
 SELECT EMP_NAME "직원명", SUBSTR(EMP_NO,1,8)||'******' "주민번호" FROM EMPLOYEE;
---7. 직원명, 직급코드, 연봉(원) 조회
-SELECT EMP_NAME "직원명", JOB_CODE "직급코드", '￦'||TO_CHAR(((SALARY*12)*NVL(BONUS, 1)), +'999,999,999') "연봉(원)" FROM EMPLOYEE;
---8. 부서코드가 D5, D9인 직원들 중에서 2004년도에 입사한 직원중에 조회함.
-SELECT EMP_ID "사번", EMP_NAME "사원명", DEPT_CODE "부서코드", HIRE_DATE "입사일" FROM EMPLOYEE WHERE DEPT_CODE IN ('D5', 'D9') AND EXTRACT(YEAR FROM HIRE_DATE) = 2004;
---9. 직원명, 입사일, 오늘까지의 근무일수 조회 
-SELECT EMP_NAME "직원명", HIRE_DATE "입사일", ROUND(SYSDATE - HIRE_DATE)||'일' "근무일수" FROM EMPLOYEE;
---10. 직원명, 부서코드, 생년월일, 나이(만) 조회
---	* 주민번호가 이상한 사람들은 제외시키고 진행 하도록(200,201,214 번 제외)
---	* HINT : NOT IN 사용
-SELECT EMP_NAME "직원명", DEPT_CODE "부서코드", TO_CHAR(TO_DATE(SUBSTR(EMP_NO,1,6)),'YYYY"년 "MM"월 "DD"일"') "생년월일",
-EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM TO_DATE(SUBSTR(EMP_NO,1,6)))||'세' "나이(만)" FROM EMPLOYEE;
---11. 사원명과, 부서명을 출력하세요.
-SELECT EMP_NAME "사원명", CASE WHEN DEPT_CODE = 'D5' THEN '총무부' WHEN DEPT_CODE = 'D6' THEN '기획부'
-WHEN DEPT_CODE = 'D9' THEN '영업부' END "부서명" FROM EMPLOYEE
-WHERE DEPT_CODE IN ('D5','D6','D9') ORDER BY DEPT_CODE ASC;
-
