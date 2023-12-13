@@ -1,0 +1,296 @@
+-- Oracle 2일차
+-- 제약조건 없는 테이블
+CREATE TABLE USER_NO_CONSTRAINT(
+    USER_NO NUMBER,
+    USER_ID VARCHAR2(20), -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30),
+    USER_NAME VARCHAR2(30), -- 한글 10글자
+    USER_GENDER VARCHAR2(10),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50)    
+);
+INSERT INTO USER_NO_CONSTRAINT
+VALUES(1, 'khuser01', 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+-- 실행하고 결과 확인하세요!!
+-- 결과확인하는 방법은??
+COMMIT;
+SELECT * FROM USER_NO_CONSTRAINT;
+ROLLBACK; -- 최종 커밋된 상태로 복구
+
+-- NOT NULL 제약조건 테이블
+CREATE TABLE USER_CONSTRAINT_NOTNULL(
+    USER_NO NUMBER,
+    USER_ID VARCHAR2(20) NOT NULL, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50)    
+);
+-- 실행 후 확인하기!!
+INSERT INTO USER_CONSTRAINT_NOTNULL
+VALUES(1, null, 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+
+-- UNIQUE 제약조건 테이블
+CREATE TABLE USER_CONSTRAINT_UNIQUE(
+    USER_NO NUMBER,
+    USER_ID VARCHAR2(20) UNIQUE, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50)    
+);
+-- UNIQUE는 NULL을 허용함!!!
+INSERT INTO USER_CONSTRAINT_UNIQUE
+VALUES(1, null, 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+INSERT INTO USER_CONSTRAINT_UNIQUE
+VALUES(1, 'khuser01', 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+-- PRIMAKRY 제약조건 테이블
+CREATE TABLE USER_PRIMARY_KEY(
+    USER_NO NUMBER UNIQUE,
+    USER_ID VARCHAR2(20) PRIMARY KEY, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50)    
+);
+INSERT INTO USER_PRIMARY_KEY
+VALUES(1, null, 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+-- 실행하고 cannot insert NULL into (%s)" 메시지 확인하세요.
+INSERT INTO USER_PRIMARY_KEY
+VALUES(1, 'khuser01', 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+-- 실행하고 무결성 제약 조건(KH.SYS_C007402)에 위배됩니다 메시지 확인하세요.
+-- => NOT NULL과 UNIQUE 합친 것이며, 테이블관계를 맺을 때 사용됨.
+
+-- CHECK 제약조건 테이블
+CREATE TABLE USER_CHECK(
+    USER_NO NUMBER UNIQUE,
+    USER_ID VARCHAR2(20) CONSTRAINT PK_USER_ID PRIMARY KEY, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10) CHECK(USER_GENDER IN('M','F')),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50)    
+);
+INSERT INTO USER_CHECK
+VALUES(1, 'khuser01', 'pass01', '일용자', '남', '01082827373', 'khuser01@kh.com');
+-- 실행하고 '남'이라 입력하면 오류나는 것 확인,
+-- 체크 제약조건(KH.SYS_C007406)이 위배되었습니다 메시지 확인
+-- INSERT하고 싶으면 남 -> M
+INSERT INTO USER_CHECK
+VALUES(1, 'khuser01', 'pass01', '일용자', 'M', '01082827373', 'khuser01@kh.com');
+-- 실행하고 삽입확인
+SELECT * FROM USER_CHECK;
+COMMIT;
+-- DEFAULT 제약조건
+CREATE TABLE USER_DEFAULT(
+    USER_NO NUMBER UNIQUE,
+    USER_ID VARCHAR2(20) PRIMARY KEY, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10) CHECK(USER_GENDER IN('M','F')),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50),
+    USER_DATE DATE DEFAULT SYSDATE
+);
+INSERT INTO USER_DEFAULT
+VALUES(1, 'khuser01', 'pass01', '일용자', 'M', '01082827373', 'khuser01@kh.com', '23/12/07');
+-- 실행하고 확인, 날짜가 23/12/07임
+SELECT * FROM USER_DEFAULT;
+-- 다른 데이터 넣어볼게요, khuser02, pass02, 이용자
+INSERT INTO USER_DEFAULT
+VALUES(2, 'khuser02', 'pass02', '이용자', 'M', '01082827373', 'khuser02@kh.com', '23/12/14');
+-- USER_NO를 2로 바꾸고 날짜가 23/12/14임을 확인
+INSERT INTO USER_DEFAULT
+VALUES(3, 'khuser03', 'pass03', '삼용자', 'M', '01082827373', 'khuser03@kh.com', DEFAULT);
+-- 다른 데이터 넣어볼게요, khuser03, pass03, 삼용자, '23/12/14' -> SYSDATE
+-- SYSDATE를 사용하면 오늘 날짜 23/12/07 들어가는것 확인 SYSDATE를 날짜함수라고 하고요
+-- 오늘 날짜를 입력해주는 역할을 합니다. 결과 확인해보세요!!
+SELECT * FROM USER_DEFAULT;
+-- DEFAULT 제약조건은 기본값을 설정할 때 사용하고 DEFAULT를 쓰면 다른 것을 신경쓰지 않고  데이터를
+-- 넣을 수 있음.
+
+-- (FOREIGN KEY) 외래키 제약조건
+CREATE TABLE USER_GRADE
+(
+    GRADE_CODE NUMBER PRIMARY KEY,
+    GRADE_NAME VARCHAR2(30) NOT NULL
+);
+INSERT INTO USER_GRADE VALUES(10, '일반회원');
+INSERT INTO USER_GRADE VALUES(20, '우수회원');
+INSERT INTO USER_GRADE VALUES(30, '특별회원');
+COMMIT;
+-- 생성 및 삽입하고 확인해보세요~!
+-- USER_GRADE는 참조될 부모 테이블입니다. 자식테이블의 한 컬럼이 부모컬럼의 데이터를 사용함.
+SELECT * FROM USER_GRADE;
+
+DROP TABLE USER_FOREIGNKEY;
+CREATE TABLE USER_FOREIGNKEY(
+    USER_NO NUMBER PRIMARY KEY,
+    USER_ID VARCHAR2(20) UNIQUE, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10) CHECK(USER_GENDER IN('M','F')),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50),
+    USER_DATE DATE DEFAULT SYSDATE,
+    GRADE_CODE NUMBER REFERENCES USER_GRADE(GRADE_CODE) ON DELETE SET NULL
+);
+-- 참조 무결성을 보장하는 FOREGIN KEY의 역할
+-- 자식테이블에서 insert할 때, 부모 테이블이 가지고 있는 컬럼의 필드값으로만 insert가 되도록 함.
+-- 부모테이블에서 데이터를 함부로 지우지 못하게 함.
+INSERT INTO USER_FOREIGNKEY
+VALUES(1, 'khuser01', 'pass01', '일용자', 'M', '01082827373', 'khuser01@kh.com', DEFAULT, 10);
+-- GRADE_CODE가 10이면 부모테이블이 가지고 있는 컬럼의 필드값이기 때문에 insert 성공 확인
+INSERT INTO USER_FOREIGNKEY
+VALUES(2, 'khuser02', 'pass02', '이용자', 'M', '01082827373', 'khuser02@kh.com', DEFAULT, 20);
+-- GRADE_CODE가 40이면 부모테이블이 가지고 있는 컬럼의 필드값이 아니기 때문에 insert 실패 확인
+-- 실행하고 무결성 제약조건(KH.SYS_C007427)이 위배되었습니다- 부모 키가 없습니다 메시지 확인
+COMMIT;
+-- 실행하고 확인
+SELECT * FROM USER_FOREIGNKEY;
+-- 외래키(FOREIGN KEY) 예제
+-- SHOP 고객 테이블, SHOP_MEMBER(부모)
+CREATE TABLE SHOP_MEMBER(
+    USER_NO NUMBER UNIQUE,
+    USER_ID VARCHAR2(20) PRIMARY KEY, -- 한글로 몇글자? 6글자
+    USER_PWD VARCHAR2(30) NOT NULL,
+    USER_NAME VARCHAR2(30) NOT NULL, -- 한글 10글자
+    USER_GENDER VARCHAR2(10) CHECK(USER_GENDER IN('M','F')),
+    USER_PHONE VARCHAR2(30),
+    USER_EMAIL VARCHAR2(50)
+);
+INSERT INTO SHOP_MEMBER
+VALUES(1, 'khuser01', 'pass01', '일용자', 'M', '01082893933','khuser01@naver.com');
+INSERT INTO SHOP_MEMBER
+VALUES(2, 'khuser02', 'pass02', '일용자', 'M', '01082893933','khuser02@naver.com');
+INSERT INTO SHOP_MEMBER
+VALUES(3, 'khuser03', 'pass03', '일용자', 'M', '01082893933','khuser03@naver.com');
+SELECT * FROM SHOP_MEMBER;
+COMMIT;
+-- SHOP 구매 내역 테이블, SHOP_BUY(자식)
+CREATE TABLE SHOP_BUY
+(
+    BUY_NO NUMBER PRIMARY KEY,
+    USER_ID VARCHAR2(30) REFERENCES SHOP_MEMBER(USER_ID),
+    PRODUCT_NAME VARCHAR2(20),
+    REG_DATE DATE DEFAULT SYSDATE
+);
+INSERT INTO SHOP_BUY
+VALUES(1, 'khuser01', '농구화', DEFAULT);
+INSERT INTO SHOP_BUY
+VALUES(2, 'khuser02', '축구화', DEFAULT);
+INSERT INTO SHOP_BUY
+VALUES(3, 'khuser03', '배구화', DEFAULT);
+INSERT INTO SHOP_BUY
+VALUES(4, 'khuser04', '족구화', DEFAULT);
+-- 실행시 무결성 제약조건(KH.SYS_C007434)이 위배되었습니다- 부모 키가 없습니다 메시지 확인
+-- 외래키 제약조건에 걸림. 부모가 가지고 있는 컬럼의 값(필드) 중 1개를 적어야 함
+-- khuser01, khuser02, khuser03
+SELECT * FROM SHOP_BUY;
+ROLLBACK;
+SELECT * FROM USER_GRADE;
+SELECT * FROM USER_FOREIGNKEY;
+-- 참조 무결성 보장하기 위해서 삭제 불가, 부모테이블의 데이터 삭제 불가
+DELETE FROM USER_GRADE WHERE GRADE_CODE = 10;
+-- 실행 후 무결성 제약조건(KH.SYS_C007427)이 위배되었습니다- 자식 레코드가 발견되었습니다. 메시지 확인
+-- 그럼에도 불구하고 삭제를 허용해야 되는 경우가 있고
+-- 그렇게 하기 위해서 삭제 옵션을 외래키 설정할때 같이 해줘야 함
+-- 외래키 삭제 옵션
+-- 1. 기본 옵션 ON DELETE RESTRICTED
+-- 2. 연관된 모든 것 삭제 옵션, ON DELETE CASCADE(부모, 자식 모든 데이터를 삭제)
+-- 3. NULL로 만드는 옵션, ON DELETE SET NULL(부모는 삭제되고, 자식에 남아있는 데이터는 null로 만들어줌)
+-- > 해당 옵션은 외래키 설정시에 같이 적어주어야 적용됨.
+
+
+--================== JOB 테이블 =========================
+CREATE TABLE JOB
+(
+    JOB_CODE CHAR(2),
+    JOB_NAME VARCHAR2(35)
+);
+INSERT INTO JOB
+VALUES('J1', '대표');
+
+COMMENT ON COLUMN JOB.JOB_CODE IS '직급코드';
+COMMENT ON COLUMN JOB.JOB_NAME IS '직급명';
+-- 실행하고 결과 꼭 확인하기
+
+--================== DEPARTMENT 테이블 ======================
+CREATE TABLE DEPARTMENT
+(
+    DEPT_ID CHAR(2),
+    DEPT_TITLE VARCHAR2(35),
+    LOCATION_ID CHAR(2)
+);
+INSERT INTO DEPARTMENT
+VALUES('D1', '인사관리부', 'L1');
+
+COMMENT ON COLUMN DEPARTMENT.DEPT_ID IS '부서코드';
+COMMENT ON COLUMN DEPARTMENT.DEPT_TITLE IS '부서명';
+COMMENT ON COLUMN DEPARTMENT.LOCATION_ID IS '지역코드';
+
+SELECT * FROM DEPARTMENT;
+SELECT DEPT_ID, DEPT_TITLE, LOCATION_ID FROM DEPARTMENT;
+
+
+-- ==================== EMPLOYEE 테이블 =======================
+DROP TABLE EMPLOYEE;
+CREATE TABLE EMPLOYEE
+(
+    EMP_ID VARCHAR2(3),
+    EMP_NAME VARCHAR2(20) NOT NULL,
+    EMP_NO CHAR(14),
+    EMAIL VARCHAR2(25),
+    PHONE VARCHAR2(12),
+    DEPT_CODE CHAR(2),
+    JOB_CODE CHAR(2),
+    SAL_LEVEL CHAR(2),
+    SALARY NUMBER,
+    BONUS NUMBER,
+    MANAGER_ID VARCHAR2(3),
+    HIRE_DATE DATE,
+    ENT_DATE DATE,
+    ENT_YN CHAR(1),
+    CONSTRAINT UNQ_EMP_ID UNIQUE(EMP_ID)
+);
+SELECT * FROM EMPLOYEE;
+SELECT EMP_ID, EMP_NAME, EMP_NO, EMAIL, PHONE, DEPT_CODE, JOB_CODE, SAL_LEVEL
+,SALARY, BONUS, MANAGER_ID, HIRE_DATE, ENT_DATE, ENT_YN FROM EMPLOYEE;
+
+-- 선동일 데이터를 EMPLOYEE 테이블에 넣어보세요!!
+INSERT INTO EMPLOYEE(EMP_ID, EMP_NAME, EMP_NO, EMAIL, PHONE, DEPT_CODE, JOB_CODE, SAL_LEVEL
+,SALARY, BONUS, MANAGER_ID, HIRE_DATE, ENT_DATE, ENT_YN)
+VALUES('200', '선동일', '621231-1985634', 'sun-di@kh.or.kr', '01099546325', 'D9', 'J1', 'S1'
+, 8000000, 0.3, null, '2013/02/06', null, 'N');
+-- 컬럼명 생략가능, 컬럼 순서 및 갯수대로 데이터 입력 필수!!
+INSERT INTO EMPLOYEE
+VALUES('200', '선동일', '621231-1985634', 'sun-di@kh.or.kr', '01099546325', 'D9', 'J1', 'S1'
+, 8000000, 0.3, null, '2013/02/06', null, 'N');
+SELECT * FROM EMPLOYEE;
+
+-- 테이블 스키마 조회, 컬럼명 확인
+DESC EMPLOYEE;
+
+COMMENT ON COLUMN EMPLOYEE.EMP_ID IS '사원번호';
+COMMENT ON COLUMN EMPLOYEE.EMP_NAME IS '직원명';
+COMMENT ON COLUMN EMPLOYEE.EMP_NO IS '주민등록번호';
+COMMENT ON COLUMN EMPLOYEE.EMAIL IS '이메일';
+COMMENT ON COLUMN EMPLOYEE.PHONE IS '전화번호';
+COMMENT ON COLUMN EMPLOYEE.DEPT_CODE IS '부서코드';
+COMMENT ON COLUMN EMPLOYEE.JOB_CODE IS '직급코드';
+COMMENT ON COLUMN EMPLOYEE.SAL_LEVEL IS '급여등급';
+COMMENT ON COLUMN EMPLOYEE.SALARY IS '급여';
+COMMENT ON COLUMN EMPLOYEE.BONUS IS '보너스율';
+COMMENT ON COLUMN EMPLOYEE.MANAGER_ID IS '관리자사번';
+COMMENT ON COLUMN EMPLOYEE.HIRE_DATE IS '입사일';
+COMMENT ON COLUMN EMPLOYEE.ENT_DATE IS '퇴사일';
+COMMENT ON COLUMN EMPLOYEE.ENT_YN IS '퇴직여부';
+
+
+
+
+
+

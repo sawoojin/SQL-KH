@@ -1,0 +1,222 @@
+-- 오라클 4일차 (함수 최종 실습 7번부터)
+
+--7. 직원명, 직급코드, 연봉(원) 조회
+--  단, 연봉은 ￦57,000,000 으로 표시되게 함
+--     연봉은 보너스포인트가 적용된 1년치 급여임
+SELECT 
+    EMP_NAME "직원명"
+    , JOB_CODE "직급코드"
+    , TO_CHAR(SALARY*12+SALARY*NVL(BONUS,0), 'L999,999,999') "연봉(원)"
+FROM EMPLOYEE;
+--8. 부서코드가 D5, D9인 직원들 중에서 2004년도에 입사한 직원중에 조회함.
+--   사번 사원명 부서코드 입사일
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, HIRE_DATE
+FROM EMPLOYEE
+WHERE DEPT_CODE IN ('D5', 'D9') AND TO_CHAR(HIRE_DATE, 'YYYY') = 2004;
+SELECT TO_CHAR(HIRE_DATE, 'YYYY'), EXTRACT(YEAR FROM HIRE_DATE) FROM EMPLOYEE;
+--9. 직원명, 입사일, 오늘까지의 근무일수 조회 
+--	* 주말도 포함 , 소수점 아래는 버림
+SELECT EMP_NAME, HIRE_DATE, FLOOR(SYSDATE-HIRE_DATE)
+FROM EMPLOYEE;
+--10. 직원명, 부서코드, 생년월일, 나이(만) 조회
+--   단, 생년월일은 주민번호에서 추출해서, 
+--   ㅇㅇㅇㅇ년 ㅇㅇ월 ㅇㅇ일로 출력되게 함.
+--   나이는 주민번호에서 추출해서 날짜데이터로 변환한 다음, 계산함
+SELECT EMP_NAME, DEPT_CODE
+, 1900+SUBSTR(EMP_NO,1,2)||'년'
+||SUBSTR(EMP_NO,3,2)||'월'
+||SUBSTR(EMP_NO,5,2)||'일' "생년월일"
+, EXTRACT(YEAR FROM SYSDATE)-(1900+SUBSTR(EMP_NO,1,2)) "나이(만)"
+FROM EMPLOYEE;
+--11. 사원명과, 부서명을 출력하세요.
+--   부서코드가 D5이면 총무부, D6이면 기획부, D9이면 영업부로 처리하시오.(case 사용)
+--   단, 부서코드가 D5, D6, D9 인 직원의 정보만 조회하고, 부서코드 기준으로 오름차순 정렬함.
+SELECT 
+    EMP_NAME
+    , DECODE(DEPT_CODE, 'D5', '총무부', 'D6', '기획부', 'D9', '영업부') "부서명"    
+    , CASE
+        WHEN DEPT_CODE = 'D5' THEN '총무부'
+        WHEN DEPT_CODE = 'D6' THEN '기획부'
+        WHEN DEPT_CODE = 'D9' THEN '영업부'
+      END "부서명(case)"
+FROM EMPLOYEE
+WHERE DEPT_CODE IN ('D5', 'D6', 'D9') ORDER BY DEPT_CODE;
+
+
+
+-- * 기타 함수
+-- 1. DECODE(IF문)
+SELECT SUBSTR(EMP_NO,8,1) FROM EMPLOYEE;
+SELECT DECODE(SUBSTR(EMP_NO,8,1),'1','남','2','여','3','남','4','여','없음') "성별" FROM EMPLOYEE;
+-- 2. CASE(SWITCH문)
+SELECT 
+    CASE
+        WHEN SUBSTR(EMP_NO,8,1) = '1' THEN '남'
+        WHEN SUBSTR(EMP_NO,8,1) = '2' THEN '여'
+        WHEN SUBSTR(EMP_NO,8,1) = '3' THEN '남'
+        WHEN SUBSTR(EMP_NO,8,1) = '4' THEN '여'
+        ELSE '없음'
+    END "성별"
+FROM EMPLOYEE;
+
+-- 그룹함수 : 특정한 행들의 집합으로 그룹이 형성되어 적용됨,
+-- 그룹당 1개의 결과를 반환, 결과 딱 1행만 나옴.
+SELECT TO_CHAR(SALARY, 'L999,999,999') FROM EMPLOYEE;
+SELECT SUM(SALARY) FROM EMPLOYEE;
+SELECT AVG(SALARY) FROM EMPLOYEE;
+SELECT COUNT(SALARY) FROM EMPLOYEE;
+SELECT MAX(SALARY) FROM EMPLOYEE;
+SELECT MIN(SALARY) FROM EMPLOYEE;
+-- GROUP BY절
+-- 별도의 그룹지정없이 사용한 그룹함수는 단 한개의 결과값만 산출함.
+-- 그룹함수를 이용하여 여러개의 결과값을 산출하기 위해서는 그룹함수가 적용될
+-- 그룹의 기준을 GROUP BY 절에 기술하여 사용하면 됨.
+-- 모든 사원의 월급의 합을 구하시오.
+-- 부서별 사원의 월급의 합을 구하시오.
+SELECT SUM(SALARY), DEPT_CODE FROM EMPLOYEE
+GROUP BY DEPT_CODE;
+-- 직급별 직원의 월급의 합을 구하시오.
+SELECT SUM(SALARY), JOB_CODE FROM EMPLOYEE
+GROUP BY JOB_CODE;
+-- 실습예제1
+-- EMPLOYEE 테이블에서 부서코드 그룹별 급여의 합계, 그룹별 급여의 평균(정수처리), 인원수를 조회하고
+-- 부서코드 순으로 정렬하시오.
+SELECT SUM(SALARY), FLOOR(AVG(SALARY)), COUNT(*), DEPT_CODE 
+FROM EMPLOYEE 
+GROUP BY DEPT_CODE 
+ORDER BY DEPT_CODE;
+-- 실습예제2
+-- EMPLOYEE 테이블에서 부서코드 그룹별, 보너스를 지급받는 사원 수를 조회하고 부서코드 순으로 정렬하시오.
+-- BONUS칼럼의 값이 존재한다면 그 행을 1로 카운팅, 보너스를 지급받는 사원이 없는 부서도 있음.
+SELECT COUNT(*), DEPT_CODE
+FROM EMPLOYEE
+WHERE BONUS IS NOT NULL
+GROUP BY DEPT_CODE
+ORDER BY DEPT_CODE ASC;
+SELECT EMP_NAME, BONUS FROM EMPLOYEE WHERE DEPT_CODE = 'D1';
+
+-- 실습예제3
+-- EMPLOYEE 테이블에서 직급이 J1인 사람들을 제외하고 직급별 사원수 및 평균급여를 출력하세요.
+SELECT COUNT(*), FLOOR(AVG(SALARY)), JOB_CODE
+FROM EMPLOYEE
+WHERE JOB_CODE != 'J1'
+GROUP BY JOB_CODE
+ORDER BY JOB_CODE;
+-- 실습예제4
+-- EMPLOYEE 테이블에서 직급이 J1인 사람들을 제외하고 입사년도별 인원수를 조회해서,
+-- 입사년도 기준으로 오름차순으로 정렬하세요.
+SELECT * FROM EMPLOYEE;
+SELECT COUNT(HIRE_DATE), EXTRACT(YEAR FROM HIRE_DATE) "입사년도"
+FROM EMPLOYEE
+WHERE JOB_CODE <> 'J1'
+GROUP BY EXTRACT(YEAR FROM HIRE_DATE)
+ORDER BY EXTRACT(YEAR FROM HIRE_DATE);
+-- 실습예제5
+-- EMPLOYEE 테이블에서 EMP_NO의 8번째 자리가 1, 3이면 '남', 2, 4이면 '여'로 결과를 조회하고,
+-- 성별별 급여의 평균(정수처리), 급여의 합계, 인원수를 조회한 뒤 인원수로 내림차순을 정렬하시오.
+SELECT FLOOR(AVG(SALARY)), SUM(SALARY), COUNT(*)
+, DECODE(SUBSTR(EMP_NO, 8, 1), '1','남', '2', '여', '3','남','4','여') "성별"
+FROM EMPLOYEE
+GROUP BY DECODE(SUBSTR(EMP_NO, 8, 1), '1','남', '2', '여', '3','남','4','여')
+ORDER BY 1 DESC;
+
+-- 실습예제6
+-- 부서내 직급별 급여의 합계를 구하시오
+SELECT SUM(SALARY), DEPT_CODE, JOB_CODE
+FROM EMPLOYEE
+GROUP BY DEPT_CODE, JOB_CODE
+ORDER BY DEPT_CODE;
+-- 실습예제7
+-- 부서내 성별 인원수를 구하시오
+SELECT COUNT(*), DEPT_CODE, DECODE(SUBSTR(EMP_NO,8,1),'1','남','2','여')
+FROM EMPLOYEE
+GROUP BY DEPT_CODE, DECODE(SUBSTR(EMP_NO,8,1),'1','남','2','여')
+ORDER BY DEPT_CODE;
+
+-- HAVING절
+-- SELECT * FROM EMPLOYEE WHERE ~(조건)
+-- SELECT SUM(SALARY) FROM EMPLOYEE GROUP BY DEPT_CODE HAVING (조건)
+-- 그룹함수로 값을 구해온 그룹에 대해 조건을 설정할 때 사용함.
+-- WHERE 절과 구별해서 사용할 줄 알아야 함.
+-- 부서별 인원수를 구해보세요
+-- 부서별 급여의 합을 구해보세요
+SELECT COUNT(SALARY)
+FROM EMPLOYEE
+GROUP BY DEPT_CODE;
+-- 실습문제1, 부서별 인원이 5명보다 많은 부서를 출력하시오.
+SELECT COUNT(SALARY)
+FROM EMPLOYEE
+GROUP BY DEPT_CODE HAVING COUNT(*) > 5;
+-- 실습문제2
+-- 부서내 직급별 인원수가 3명이상인 부서코드, 직급코드, 인원수를 출력해보세요.
+SELECT COUNT(*), DEPT_CODE, JOB_CODE
+FROM EMPLOYEE
+GROUP BY DEPT_CODE, JOB_CODE
+HAVING COUNT(*) > 2
+ORDER BY 2 ASC;
+-- 실습문제3
+-- 매니저가 관리하는 사원이 2명 이상인 매니저 아이디와 관리하는 사원수를 출력하세요!
+SELECT COUNT(*), MANAGER_ID
+FROM EMPLOYEE
+GROUP BY MANAGER_ID
+HAVING COUNT(*) >= 2 AND MANAGER_ID IS NOT NULL;
+
+-- 직급별 급여 합계
+SELECT SUM(SALARY), JOB_CODE
+FROM EMPLOYEE
+GROUP BY ROLLUP(JOB_CODE);
+-- 부서별 급여 합계를 ROLLUP으로 출력해보세요!
+SELECT SUM(SALARY), DEPT_CODE, JOB_CODE
+FROM EMPLOYEE
+--WHERE DEPT_CODE IS NOT NULL
+GROUP BY ROLLUP(DEPT_CODE, JOB_CODE)
+HAVING DEPT_CODE IS NOT NULL;
+-- 부서별 급여 합계를 CUBE로 출력해주세요.
+SELECT SUM(SALARY), DEPT_CODE, JOB_CODE
+FROM EMPLOYEE
+GROUP BY CUBE(DEPT_CODE, JOB_CODE); -- ROLLUP보다 출력되는 결과가 많음.
+-- 더 많은 부분은 직급별 합계를 추가해서 출력해줌
+
+-- 집합 연산자(SET OPERATION)
+-- UNION, UNION ALL
+-- 조건 1. 컬럼의 갯수가 같을 것. 2. 컬럼의 타입이 같을 것
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE DEPT_CODE = 'D5'
+UNION
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE SALARY > 3000000;
+
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE DEPT_CODE = 'D5'
+UNION ALL
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE SALARY > 3000000;
+
+-- INTERSECT(교집합, 겹쳐진거)
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE DEPT_CODE = 'D5'
+INTERSECT
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE SALARY > 3000000;
+
+-- MINUS(차집합)
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE DEPT_CODE = 'D5'
+MINUS
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE WHERE SALARY > 3000000;
+
+-- ROLLUP설명시 UNION 사용
+SELECT SUM(SALARY), DEPT_CODE
+FROM EMPLOYEE
+GROUP BY DEPT_CODE
+UNION
+SELECT SUM(SALARY), NULL
+FROM EMPLOYEE;
+
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, DEPT_ID, DEPT_TITLE
+FROM EMPLOYEE
+JOIN DEPARTMENT ON DEPT_CODE = DEPT_ID;
+
+SELECT * FROM DEPARTMENT;
+

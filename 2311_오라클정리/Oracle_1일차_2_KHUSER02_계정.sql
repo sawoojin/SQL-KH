@@ -1,0 +1,46 @@
+-- 오늘 한거 정리
+-- 계정 생성 / 삭제, 테이블 생성 / 삭제 (DDL)
+-- 계정 권한 부여 (DCL)
+-- 데이터 조회 (DQL)
+-- 데이터 삽입/삭제, 수정 (DML)
+-- 최종 저장 및 원복 (TCL)
+
+
+SHOW USER;
+-- 테이블 생성(DDL)
+CREATE TABLE MEMBER_TBL
+(
+    MEMBER_NO NUMBER,
+    MEMBER_ID VARCHAR2(20),
+    MEMBER_NAME VARCHAR2(30),
+    MEMBER_EMAIL VARCHAR2(50)
+);
+-- 테이블 삭제(DDL)
+DROP TABLE MEMBER_TBL;
+-- 데이터 조회/ DML(DQL)
+SELECT MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_EMAIL FROM MEMBER_TBL;
+-- 데이터 삽입(INSERT INTO ~ VALUE )/DML
+INSERT INTO MEMBER_TBL(MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_EMAIL) 
+VALUES(1, 'khuser01', '일용자', 'khuser01@kh.com');
+INSERT INTO MEMBER_TBL(MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_EMAIL) 
+VALUES(2, 'khuser02', '이용자', 'khuser02@kh.com');
+INSERT INTO MEMBER_TBL(MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_EMAIL) 
+VALUES(3, 'khuser03', '삼용자', 'khuser03@kh.com');
+INSERT INTO MEMBER_TBL(MEMBER_NO, MEMBER_ID, MEMBER_NAME, MEMBER_EMAIL) 
+VALUES(4, 'khuser04', '사용자', 'khuser04@kh.com');
+-- 데이터 수정
+UPDATE MEMBER_TBL SET MEMBER_NAME = '일용자' WHERE MEMBER_NO = 1; -- MEMBER_ID = 'khuser01',...
+-- 데이터 삭제(DELETE FROM ~ WHERE)/DML
+DELETE FROM MEMBER_TBL WHERE MEMBER_NO = 1;
+-- 최종 저장하는 명령어 (TCL)
+COMMIT;
+-- 롤백하는 명령어 (TCL)
+ROLLBACK;
+
+
+
+
+
+
+
+
